@@ -16,12 +16,21 @@ export const OrdersListPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const filtered = orders.filter(
-    (o) =>
-      o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
-      o.retailerName.toLowerCase().includes(search.toLowerCase()) ||
-      o.shopName.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = orders.filter((o) => {
+    if (!o) return false;
+    const searchLower = (search || '').toLowerCase();
+    const numStr = (o.orderNumber || '').toLowerCase();
+    const retStr = (o.retailerName || '').toLowerCase();
+    const shopStr = (o.shopName || '').toLowerCase();
+    const farmStr = (o.farmName || '').toLowerCase();
+
+    return (
+      numStr.includes(searchLower) ||
+      retStr.includes(searchLower) ||
+      shopStr.includes(searchLower) ||
+      farmStr.includes(searchLower)
+    );
+  });
 
   const columns: Column<Order>[] = [
     {
@@ -35,7 +44,7 @@ export const OrdersListPage: React.FC = () => {
             {row.orderNumber}
           </a>
           <span className="text-[10px] text-slate-400 font-mono">
-            {new Date(row.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {row.createdAt ? new Date(row.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
           </span>
         </div>
       ),
@@ -81,7 +90,7 @@ export const OrdersListPage: React.FC = () => {
       header: 'Total Amount',
       cell: (row) => (
         <span className="font-extrabold text-emerald-700 text-xs">
-          ₹{row.totalAmount.toLocaleString('en-IN')}
+          ₹{(row.totalAmount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -91,7 +100,7 @@ export const OrdersListPage: React.FC = () => {
     },
     {
       header: 'Payment',
-      cell: (row) => <StatusBadge status={row.paymentStatus} size="sm" />,
+      cell: (row) => <StatusBadge status={row.paymentStatus || 'UNPAID'} size="sm" />,
     },
     {
       header: 'Driver',
@@ -156,7 +165,7 @@ export const OrdersListPage: React.FC = () => {
       <DataTable
         columns={columns}
         data={filtered}
-        keyExtractor={(row) => row.id}
+        keyExtractor={(row) => String(row.id)}
         searchValue={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search orders by ID, retailer, or shop..."

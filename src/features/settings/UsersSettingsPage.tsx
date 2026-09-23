@@ -36,12 +36,14 @@ export const UsersSettingsPage: React.FC = () => {
               <tr key={u.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-bold text-slate-900">{u.name}</td>
                 <td className="px-4 py-3 text-slate-600">{u.email}</td>
-                <td className="px-4 py-3 font-bold text-brand-900">{u.role.replace('_', ' ')}</td>
+                <td className="px-4 py-3 font-bold text-brand-900">{(u.role || 'ADMIN').replace(/_/g, ' ')}</td>
                 <td className="px-4 py-3 text-slate-500">{u.farmName || 'All Farms Scope'}</td>
                 <td className="px-4 py-3">
                   <StatusBadge status={u.status} size="sm" />
                 </td>
-                <td className="px-4 py-3 text-slate-400">{new Date(u.lastLoginAt).toLocaleString()}</td>
+                <td className="px-4 py-3 text-slate-400">
+                  {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Recently'}
+                </td>
               </tr>
             ))}
           </tbody>

@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Clock, History } from 'lucide-react';
+import { TrendingUp, Clock, History, AlertCircle, Sparkles, Filter, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { PageHeader } from '../../components/common/PageHeader';
-import { useFarmContext } from '../../context/FarmContext';
+import { useFarms } from '../../hooks/useFarms';
 import { useLiveRates } from '../../hooks/useRates';
-import { UpdateRateModal } from './UpdateRateModal';
 import { rateWebSocketService } from '../../services/websocket.service';
+import { Button } from '../../components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Badge } from '../../components/ui/badge';
+import { Card, CardContent } from '../../components/ui/card';
 
 export const RatesPage: React.FC = () => {
-  const { selectedFarmId } = useFarmContext();
-  const { data: liveRates = [], refetch } = useLiveRates(selectedFarmId);
-  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+  const { data: farms = [] } = useFarms();
+  const [selectedFarmId, setSelectedFarmId] = useState<string>('ALL');
+  const { data: liveRates = [], isLoading, refetch } = useLiveRates(selectedFarmId);
   const [tickerActive, setTickerActive] = useState(true);
 
   // Subscribe to WebSocket live updates
@@ -31,132 +34,199 @@ export const RatesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Live Chicken Rates"
-        subtitle="Manage live market chicken pricing across all farms (POST /api/v1/rates & GET /api/v1/rates/current)"
+        title="Live Chicken Pricing Dashboard"
+        subtitle="Real-time market rate monitoring & instant WebSocket price publication (/api/v1/rates)"
         actions={
           <div className="flex items-center gap-3">
-            <Link
-              to="/rates/history"
-              className="px-4 py-2 bg-white border border-stone-300 hover:bg-stone-50 text-stone-800 font-semibold text-sm rounded-xl shadow-xs transition-colors flex items-center gap-2"
-            >
-              <History className="w-4 h-4 text-stone-500" />
-              View Rate History
+            <Link to="/rates/history">
+              <Button variant="outline">
+                <History className="w-4 h-4 mr-1.5 text-stone-500" /> View Rate History Timeline
+              </Button>
             </Link>
-            <Link
-              to="/rates/update"
-              className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
-            >
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
-              + Update Live Rate
+            <Link to="/rates/update">
+              <Button size="lg">
+                <TrendingUp className="w-4 h-4 mr-1.5 text-emerald-400" /> + Publish New Live Rate
+              </Button>
             </Link>
           </div>
         }
       />
 
-      {/* WebSocket Real-time Banner */}
-      <div className="bg-stone-900 text-white p-4 rounded-2xl border border-stone-800 flex items-center justify-between shadow-xs">
+      {/* WebSocket Real-time Ticker Banner */}
+      <div className="bg-stone-900 text-white p-4 rounded-2xl border border-stone-800 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
-          <span className="text-xs font-semibold">
-            Real-time WebSocket Rate Broadcast Event Listener Active (`/ws/live-rates`)
-          </span>
+          <div>
+            <p className="text-xs font-bold text-white">WebSocket Broadcast Engine Active (`/ws/live-rates`)</p>
+            <p className="text-[11px] text-stone-400">
+              Live rates published here automatically sync to all registered Retailer mobile apps in real-time.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-stone-400">Simulate Live Ticker:</span>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" className="text-stone-300 hover:text-white" onClick={() => refetch()}>
+            <RefreshCw className={`w-3.5 h-3.5 mr-1 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
           <button
             onClick={() => setTickerActive(!tickerActive)}
-            className={`px-3 py-1 rounded-full font-bold transition-colors ${
+            className={`px-3 py-1 rounded-full font-bold text-xs transition-colors ${
               tickerActive ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-stone-800 text-stone-400'
             }`}
           >
-            {tickerActive ? 'CONNECTED' : 'PAUSED'}
+            {tickerActive ? 'WEBSOCKET: CONNECTED' : 'PAUSED'}
           </button>
         </div>
       </div>
 
-      {/* Hero Live Rate Cards */}
+      {/* Farm Hub Filter Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-xs font-bold text-stone-700 uppercase tracking-wider">
+          <Filter className="w-4 h-4 text-emerald-700" /> Filter Active Rates by Farm Hub:
+        </div>
+        <div className="w-full md:w-72">
+          <Select value={selectedFarmId} onValueChange={setSelectedFarmId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select farm filter..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">🌐 All Farm Hubs (GET /rates?farmId=ALL)</SelectItem>
+              {farms.map((f) => (
+                <SelectItem key={String(f.id)} value={String(f.id)}>
+                  🏡 {f.name} ({f.code})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Hero Live Rate Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {liveRates.length === 0 ? (
-          <div className="col-span-4 p-8 bg-white rounded-2xl border border-stone-200 text-center text-stone-500 text-sm">
-            No live rates published yet. Click <strong>Update Live Rate</strong> to publish the first rate.
+        {isLoading ? (
+          <div className="col-span-4 text-center py-12 text-stone-500 font-semibold text-sm">
+            Loading live rate feeds...
           </div>
+        ) : liveRates.length === 0 ? (
+          <Card className="col-span-4 p-8 text-center border-stone-200">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-stone-900">No Rates Found for Selected Filter</h3>
+            <p className="text-xs text-stone-500 mt-1 mb-4">
+              Publish a live rate per KG to initiate the market pricing ledger for this farm hub.
+            </p>
+            <Link to="/rates/update">
+              <Button>Publish Rate Now →</Button>
+            </Link>
+          </Card>
         ) : (
           liveRates.map((rate) => (
-            <div
-              key={rate.id}
-              className="bg-white rounded-2xl border border-stone-200 p-6 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden"
-            >
-              <div className="flex items-center justify-between text-xs mb-3">
-                <span className="font-bold text-stone-700 uppercase tracking-wider">{rate.farmName || `Farm #${rate.farmId}`}</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-[10px]">
-                  {(rate.chickenType || 'BROILER').replace('_', ' ')}
-                </span>
-              </div>
+            <Card key={String(rate.id)} className="relative overflow-hidden hover:shadow-md transition-all border-stone-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between text-xs mb-3">
+                  <span className="font-bold text-stone-800 uppercase tracking-wider truncate max-w-[140px]">
+                    {rate.farmName || `Farm #${rate.farmId}`}
+                  </span>
+                  <Badge variant="brand">
+                    {rate.status || 'ACTIVE'}
+                  </Badge>
+                </div>
 
-              <div className="my-3">
-                <span className="text-3xl font-extrabold text-stone-900">₹{rate.ratePerKg}</span>
-                <span className="text-xs text-stone-500 font-medium"> / KG</span>
-              </div>
+                <div className="my-2 space-y-1">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl font-black text-stone-900">₹{rate.ratePerKg || rate.currentRate}</span>
+                    <span className="text-xs text-stone-500 font-extrabold">/ KG</span>
+                  </div>
 
-              <div className="flex items-center justify-between text-xs pt-3 border-t border-stone-100">
-                <span className="text-stone-500">Currency: {rate.currency || 'INR'}</span>
-                <span className="font-bold text-emerald-600">
-                  {rate.percentageChange != null ? `${rate.percentageChange >= 0 ? '+' : ''}${rate.percentageChange}%` : 'LIVE'}
-                </span>
-              </div>
+                  {(rate.originalRatePerKg || rate.originalRate) && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-stone-400 line-through font-medium">
+                        ₹{rate.originalRatePerKg || rate.originalRate} / KG
+                      </span>
+                      {rate.discountPerKg != null && rate.discountPerKg > 0 && (
+                        <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px] border border-emerald-200">
+                          -₹{rate.discountPerKg} OFF
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-              <div className="mt-4 pt-3 border-t border-stone-100 text-[11px] text-stone-400 space-y-1">
-                <p className="truncate">
-                  <strong>Reason:</strong> {rate.reason || 'Market update'}
-                </p>
-                <p className="flex items-center gap-1 text-stone-500">
-                  <Clock className="w-3 h-3" /> {rate.effectiveFrom ? new Date(rate.effectiveFrom).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
-                </p>
-              </div>
-            </div>
+                <div className="flex items-center justify-between text-xs pt-3 border-t border-stone-100">
+                  <span className="text-stone-500">Chicken Type:</span>
+                  <span className="font-bold text-emerald-800">
+                    {rate.chickenType ? rate.chickenType.replace('_', ' ') : `Type #${rate.chickenTypeId || 3}`}
+                  </span>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-stone-100 text-[11px] text-stone-500 space-y-1">
+                  <p className="truncate" title={rate.reason}>
+                    <strong>Reason:</strong> {rate.reason || 'Market update'}
+                  </p>
+                  <p className="flex items-center gap-1 text-stone-400">
+                    <Clock className="w-3 h-3" />
+                    {rate.effectiveFrom ? new Date(rate.effectiveFrom).toLocaleString() : 'Just now'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           ))
         )}
       </div>
 
-      {/* Live Rate Feed List */}
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-stone-200 bg-stone-50/50 flex items-center justify-between">
-          <h3 className="text-base font-bold text-stone-900">Recent Live Rate Publications</h3>
-          <span className="text-xs text-stone-500 font-medium">{liveRates.length} active rates</span>
+      {/* Live Rate Feed List Table */}
+      <Card>
+        <div className="p-5 border-b border-stone-100 bg-stone-50/50 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-bold text-stone-900">Active Rate Publications Ledger</h3>
+            <p className="text-xs text-stone-500">GET /api/v1/rates?farmId={selectedFarmId}</p>
+          </div>
+          <Badge variant="secondary">{liveRates.length} Active Feeds</Badge>
         </div>
 
-        <div className="divide-y divide-stone-200">
+        <CardContent className="p-0 divide-y divide-stone-100">
           {liveRates.map((r) => (
-            <div key={r.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-stone-50">
+            <div key={String(r.id)} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-stone-50/70 transition-colors">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-stone-900 text-sm">{r.farmName || `Farm #${r.farmId}`}</span>
+                  <span className="font-extrabold text-stone-900 text-sm">{r.farmName || `Farm Hub #${r.farmId}`}</span>
                   <span className="text-xs text-stone-400">•</span>
-                  <span className="text-xs font-semibold text-emerald-700">{(r.chickenType || 'LIVE_CHICKEN').replace('_', ' ')}</span>
+                  <span className="text-xs font-bold text-emerald-700">
+                    {r.chickenType ? r.chickenType.replace('_', ' ') : `Chicken Type #${r.chickenTypeId || 3}`}
+                  </span>
                 </div>
-                <p className="text-xs text-stone-500 mt-0.5">{r.reason || 'Market rate update'}</p>
+                <p className="text-xs text-stone-500 mt-0.5">{r.reason || 'Market price update'}</p>
               </div>
 
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <span className="text-lg font-bold text-stone-900">₹{r.ratePerKg} / KG</span>
-                  <p className="text-[11px] text-stone-400">
-                    Effective: {r.effectiveFrom ? new Date(r.effectiveFrom).toLocaleDateString() : 'Today'}
+                  <div className="flex items-baseline gap-1.5 justify-end">
+                    <span className="text-lg font-black text-stone-900">₹{r.ratePerKg || r.currentRate} / KG</span>
+                    {(r.originalRatePerKg || r.originalRate) && (
+                      <span className="text-xs text-stone-400 line-through">
+                        ₹{r.originalRatePerKg || r.originalRate}
+                      </span>
+                    )}
+                  </div>
+                  {r.discountPerKg != null && r.discountPerKg > 0 && (
+                    <p className="text-[11px] text-emerald-700 font-bold">
+                      ₹{r.discountPerKg} Flat Discount / KG
+                    </p>
+                  )}
+                  <p className="text-[10px] text-stone-400 font-mono">
+                    {r.effectiveFrom ? new Date(r.effectiveFrom).toLocaleDateString() : 'Today'}
                   </p>
                 </div>
-                <Link
-                  to="/rates/update"
-                  className="px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs rounded-xl transition-colors"
-                >
-                  Update
+                <Link to="/rates/update">
+                  <Button variant="outline" size="sm">
+                    Revise Rate
+                  </Button>
                 </Link>
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      <UpdateRateModal isOpen={isUpdateOpen} onClose={() => setIsUpdateOpen(false)} />
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -13,12 +13,21 @@ export const ShopsListPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const filtered = shops.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.retailerName.toLowerCase().includes(search.toLowerCase()) ||
-      s.city.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = shops.filter((s) => {
+    if (!s) return false;
+    const searchLower = (search || '').toLowerCase();
+    const nameStr = (s.name || '').toLowerCase();
+    const retailerStr = (s.retailerName || '').toLowerCase();
+    const cityStr = (s.city || '').toLowerCase();
+    const areaStr = (s.area || '').toLowerCase();
+
+    return (
+      nameStr.includes(searchLower) ||
+      retailerStr.includes(searchLower) ||
+      cityStr.includes(searchLower) ||
+      areaStr.includes(searchLower)
+    );
+  });
 
   const columns: Column<Shop>[] = [
     {
@@ -65,13 +74,13 @@ export const ShopsListPage: React.FC = () => {
     },
     {
       header: 'Total Orders',
-      cell: (row) => <span className="font-bold text-slate-900 text-xs">{row.totalOrders}</span>,
+      cell: (row) => <span className="font-bold text-slate-900 text-xs">{row.totalOrders ?? 0}</span>,
     },
     {
       header: 'Total Purchases',
       cell: (row) => (
         <span className="font-extrabold text-emerald-700 text-xs">
-          ₹{row.totalPurchaseAmount.toLocaleString('en-IN')}
+          ₹{(row.totalPurchaseAmount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },

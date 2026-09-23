@@ -14,3 +14,10 @@ export interface CreateChickenTypePayload {
   unit: string;
   status?: 'ACTIVE' | 'INACTIVE';
 }
+
+export interface UpdateChickenTypePayload {
+  name?: string;
+  code?: string;
+  unit?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+}

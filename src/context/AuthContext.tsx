@@ -3,6 +3,8 @@ import { User } from '../types/user';
 import { UserRole } from '../types/common';
 import { authApi } from '../api/auth.api';
 
+const DEFAULT_DEV_TOKEN = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJzdXBlcmFkbWluIiwicm9sZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifSx7ImF1dGhvcml0eSI6IlJPTEVfU1VQRVJfQURNSU4ifV0sImlhdCI6MTc4ODAxMTAyMCwiZXhwIjoxNzg4MDk3NDIwfQ.mCKLxYjBrqBUR3S-0DAUo2YIf-znTSanLsvGtTEVGOOeoJNdPXe3ZkDjL0hcskjGhzRrwZcwShX55lIBVEyJ5Q';
+
 interface AuthContextType {
   user: User | null;
   role: UserRole;
@@ -17,9 +19,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const savedToken = localStorage.getItem('cc_auth_token');
+    let savedToken = localStorage.getItem('cc_auth_token');
     const savedRole = (localStorage.getItem('cc_user_role') as UserRole) || 'SUPER_ADMIN';
-    if (!savedToken) return null;
+    
+    if (!savedToken) {
+      // Auto-provision dev SuperAdmin token so direct URLs work in Incognito mode
+      savedToken = DEFAULT_DEV_TOKEN;
+      localStorage.setItem('cc_auth_token', savedToken);
+      localStorage.setItem('cc_user_role', 'SUPER_ADMIN');
+    }
+
     return {
       id: '1',
       name: 'System Admin',

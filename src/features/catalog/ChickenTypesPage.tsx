@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
+import { PageHeader } from '../../components/common/PageHeader';
+import { DataTable, Column } from '../../components/common/DataTable';
 import { useChickenTypes, useCreateChickenType, useUpdateChickenType, useDeleteChickenType } from '../../hooks/useChickenTypes';
 import { ChickenType } from '../../types/chickenType';
-import { Plus, Edit3, Trash2, Tag, X, AlertTriangle, ShieldCheck, Ban } from 'lucide-react';
+import { Plus, Edit3, Trash2, ShieldCheck, Tag, X, AlertTriangle } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
-import { DataTable, Column } from '../../components/common/DataTable';
 
-export const ChickenTypesSettingsPage: React.FC = () => {
+export const ChickenTypesPage: React.FC = () => {
   const { data: chickenTypes = [], isLoading } = useChickenTypes();
   const createMutation = useCreateChickenType();
   const updateMutation = useUpdateChickenType();
@@ -19,7 +21,6 @@ export const ChickenTypesSettingsPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingType, setEditingType] = useState<ChickenType | null>(null);
   const [deletingType, setDeletingType] = useState<ChickenType | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -44,11 +45,6 @@ export const ChickenTypesSettingsPage: React.FC = () => {
     setUnit(ct.unit || 'KG');
     setStatus(ct.status || 'ACTIVE');
     setError(null);
-  };
-
-  const openDeleteModal = (ct: ChickenType) => {
-    setDeletingType(ct);
-    setDeleteError(null);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -96,33 +92,11 @@ export const ChickenTypesSettingsPage: React.FC = () => {
 
   const handleDelete = async () => {
     if (!deletingType) return;
-    setDeleteError(null);
-
     try {
       await deleteMutation.mutateAsync(deletingType.id);
       setDeletingType(null);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || '';
-      if (msg.includes('foreign key constraint') || msg.includes('violates foreign key') || msg.includes('farm_rates')) {
-        setDeleteError(
-          `Cannot hard-delete "${deletingType.name}" because existing live rates, inventory ledgers, or order items are linked to it in the database.`
-        );
-      } else {
-        setDeleteError(msg || 'Failed to delete chicken type.');
-      }
-    }
-  };
-
-  const handleMarkInactive = async () => {
-    if (!deletingType) return;
-    try {
-      await updateMutation.mutateAsync({
-        id: deletingType.id,
-        payload: { status: 'INACTIVE' },
-      });
-      setDeletingType(null);
-    } catch (err: any) {
-      alert(err?.message || 'Failed to set status to INACTIVE');
+      alert(err?.message || 'Failed to delete chicken type');
     }
   };
 
@@ -160,7 +134,7 @@ export const ChickenTypesSettingsPage: React.FC = () => {
       ),
     },
     {
-      header: 'Unit',
+      header: 'Unit of Measure',
       cell: (row) => <Badge variant="secondary">{row.unit || 'KG'}</Badge>,
     },
     {
@@ -178,7 +152,7 @@ export const ChickenTypesSettingsPage: React.FC = () => {
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
             <Edit3 className="w-3.5 h-3.5 mr-1" /> Edit
           </Button>
-          <Button variant="ghost" size="sm" className="text-rose-600 hover:text-rose-700" onClick={() => openDeleteModal(row)}>
+          <Button variant="ghost" size="sm" className="text-rose-600 hover:text-rose-700" onClick={() => setDeletingType(row)}>
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
@@ -187,17 +161,29 @@ export const ChickenTypesSettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-bold text-stone-900">Chicken Product Catalog & Types</h3>
-          <p className="text-xs text-stone-500">
-            Step 1: Manage master entries (GET, POST, PUT, DELETE /api/v1/chicken-types)
-          </p>
+    <div className="space-y-6">
+      <PageHeader
+        title="Chicken Types Master Catalog"
+        subtitle="Configure master chicken types across all farms (/api/v1/chicken-types)"
+        actions={
+          <Button onClick={openAddModal}>
+            <Plus className="w-4 h-4 mr-1.5 text-emerald-400" />
+            Add New Chicken Type
+          </Button>
+        }
+      />
+
+      <div className="bg-stone-900 text-white p-4 rounded-2xl border border-stone-800 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="w-5 h-5 text-emerald-400" />
+          <div>
+            <p className="text-xs font-bold">Step 1: Catalog Setup Active</p>
+            <p className="text-[11px] text-stone-400">
+              Chicken types define the baseline product categories used for stock-in, live pricing, and retailer orders.
+            </p>
+          </div>
         </div>
-        <Button onClick={openAddModal}>
-          <Plus className="w-4 h-4 mr-1.5 text-emerald-400" /> Add Chicken Type
-        </Button>
+        <Badge variant="brand">CATALOG_LEVEL_1</Badge>
       </div>
 
       <DataTable
@@ -223,7 +209,7 @@ export const ChickenTypesSettingsPage: React.FC = () => {
 
             {error && (
               <div className="mb-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 font-medium">
-                <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-rose-600" />
                 <span>{error}</span>
               </div>
             )}
@@ -290,7 +276,7 @@ export const ChickenTypesSettingsPage: React.FC = () => {
 
             {error && (
               <div className="mb-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 font-medium">
-                <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-rose-600" />
                 <span>{error}</span>
               </div>
             )}
@@ -343,49 +329,31 @@ export const ChickenTypesSettingsPage: React.FC = () => {
         </div>
       )}
 
-      {/* DELETE CONFIRMATION & FOREIGN KEY ERROR MODAL */}
+      {/* DELETE CONFIRMATION MODAL */}
       {deletingType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-200 text-center relative">
-            <button onClick={() => setDeletingType(null)} className="absolute top-4 right-4 p-1 text-stone-400 hover:text-stone-600">
-              <X className="w-5 h-5" />
-            </button>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-200 text-center">
             <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-stone-900">Delete Chicken Type?</h3>
             <p className="text-xs text-stone-500 mt-2">
-              Attempting to delete <span className="font-bold text-stone-900">{deletingType.name}</span> (#{deletingType.id}).
+              Are you sure you want to delete <span className="font-bold text-stone-900">{deletingType.name}</span> ({deletingType.code})?
+              This executes <span className="font-mono text-rose-600">DELETE /api/v1/chicken-types/{deletingType.id}</span>.
             </p>
 
-            {deleteError ? (
-              <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-left text-xs space-y-3">
-                <div className="flex items-start gap-2 text-amber-900 font-bold">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <span>Foreign Key Constraint Active</span>
-                </div>
-                <p className="text-stone-600 leading-relaxed">{deleteError}</p>
-                <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between">
-                  <span className="text-[11px] text-stone-500">Recommended Action:</span>
-                  <Button size="sm" variant="outline" className="text-amber-800 border-amber-300 hover:bg-amber-100" onClick={handleMarkInactive}>
-                    <Ban className="w-3.5 h-3.5 mr-1" /> Mark as INACTIVE
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <Button variant="outline" onClick={() => setDeletingType(null)}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={deleteMutation.isPending}
-                >
-                  {deleteMutation.isPending ? 'Deleting...' : 'Delete Type'}
-                </Button>
-              </div>
-            )}
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Button variant="outline" onClick={() => setDeletingType(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete Type'}
+              </Button>
+            </div>
           </div>
         </div>
       )}

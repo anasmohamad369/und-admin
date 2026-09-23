@@ -12,12 +12,19 @@ export const DriversListPage: React.FC = () => {
   const { data: drivers = [], isLoading } = useDrivers(selectedFarmId);
   const [search, setSearch] = useState('');
 
-  const filtered = drivers.filter(
-    (d) =>
-      d.name.toLowerCase().includes(search.toLowerCase()) ||
-      d.vehicleNumber.toLowerCase().includes(search.toLowerCase()) ||
-      d.phone.includes(search)
-  );
+  const filtered = drivers.filter((d) => {
+    if (!d) return false;
+    const searchLower = (search || '').toLowerCase();
+    const nameStr = (d.name || '').toLowerCase();
+    const vehStr = (d.vehicleNumber || '').toLowerCase();
+    const phoneStr = (d.phone || '').toLowerCase();
+
+    return (
+      nameStr.includes(searchLower) ||
+      vehStr.includes(searchLower) ||
+      phoneStr.includes(searchLower)
+    );
+  });
 
   const columns: Column<Driver>[] = [
     {

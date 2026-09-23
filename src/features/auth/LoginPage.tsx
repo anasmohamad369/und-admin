@@ -42,7 +42,7 @@ export const LoginPage: React.FC = () => {
             />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-stone-900">NutriFarm Chicken</h1>
-          <p className="text-xs font-semibold text-amber-700 mt-0.5">A Fresh & Healthy Chicken</p>
+          <p className="text-xs font-bold text-orange-600 mt-0.5">A Fresh & Healthy Chicken</p>
           <p className="text-xs text-stone-500 mt-1">Multi-Farm B2B Operations Admin Portal</p>
         </div>
 
@@ -61,7 +61,7 @@ export const LoginPage: React.FC = () => {
                   value={phoneOrEmail}
                   onChange={(e) => setPhoneOrEmail(e.target.value)}
                   placeholder="Enter mobile or email..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-emerald-600 focus:bg-white transition-colors"
                 />
               </div>
             </div>
@@ -78,7 +78,7 @@ export const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-emerald-600 focus:bg-white transition-colors"
                 />
               </div>
             </div>
@@ -92,7 +92,7 @@ export const LoginPage: React.FC = () => {
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-colors cursor-pointer"
+                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-emerald-600 focus:bg-white transition-colors cursor-pointer"
                 >
                   <option value="SUPER_ADMIN">Super Administrator</option>
                   <option value="ADMIN">Admin User</option>
@@ -107,7 +107,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group disabled:opacity-50 mt-2"
+              className="w-full py-3 bg-gradient-to-r from-emerald-900 via-emerald-800 to-orange-600 hover:from-emerald-950 hover:to-orange-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group disabled:opacity-50 mt-2"
             >
               {loading ? 'Authenticating...' : 'Sign In to NutriFarm Portal'}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

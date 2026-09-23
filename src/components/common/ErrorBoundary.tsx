@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertOctagon, RefreshCw, Home } from 'lucide-react';
+import { useRouteError } from 'react-router-dom';
 
 interface Props {
   children?: ReactNode;
@@ -85,6 +86,9 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 export function RouteErrorElement() {
+  const error = useRouteError() as any;
+  console.error('Route error element caught:', error);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900 text-slate-100 p-6">
       <div className="max-w-lg w-full bg-slate-800/80 backdrop-blur-md rounded-2xl p-8 border border-slate-700/60 shadow-2xl space-y-6 text-center">
@@ -98,6 +102,13 @@ export function RouteErrorElement() {
             The requested page encountered an unhandled exception.
           </p>
         </div>
+
+        {error && (
+          <div className="bg-slate-950/70 rounded-xl p-4 border border-slate-800 text-left font-mono text-xs text-rose-300 overflow-x-auto max-h-40">
+            <p className="font-semibold">{error.name || 'Error'}: {error.message || String(error)}</p>
+            {error.stack && <pre className="text-[10px] text-slate-400 mt-2 whitespace-pre-wrap">{error.stack}</pre>}
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <button

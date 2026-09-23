@@ -88,6 +88,7 @@ export const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ isOpen, onCl
         shopId,
         chickenType,
         quantityKg: Number(quantityKg),
+        items: [{ chickenType, quantity: Number(quantityKg), quantityKg: Number(quantityKg) }],
         notes,
       });
       onClose();

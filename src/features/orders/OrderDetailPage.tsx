@@ -44,9 +44,9 @@ export const OrderDetailPage: React.FC = () => {
   const handleStatusChange = async (nextStatus: OrderStatus) => {
     try {
       await updateStatusMutation.mutateAsync({
-        orderId: order.id,
+        orderId: String(order.id),
         status: nextStatus,
-        driverId: selectedDriverId || order.driverId,
+        driverId: selectedDriverId || (order.driverId ? String(order.driverId) : undefined),
       });
     } catch (err) {
       console.error(err);
@@ -56,16 +56,16 @@ export const OrderDetailPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={order.orderNumber}
-        subtitle={`Placed on ${new Date(order.createdAt).toLocaleString()}`}
+        title={order.orderNumber || `Order #${order.id}`}
+        subtitle={`Placed on ${order.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A'}`}
         breadcrumbs={[
           { label: 'Orders', href: '/orders' },
-          { label: order.orderNumber },
+          { label: order.orderNumber || `Order #${order.id}` },
         ]}
         actions={
           <div className="flex items-center gap-3">
             <StatusBadge status={order.status} />
-            <StatusBadge status={order.paymentStatus} />
+            {order.paymentStatus && <StatusBadge status={order.paymentStatus} />}
             <Link
               to="/orders"
               className="px-3.5 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center gap-1.5"
@@ -243,12 +243,12 @@ export const OrderDetailPage: React.FC = () => {
                 {order.items.map((item) => (
                   <tr key={item.id}>
                     <td className="py-3 px-3 font-bold text-slate-900">
-                      {item.chickenType.replace('_', ' ')}
+                      {(item.chickenType || 'LIVE_CHICKEN').replace('_', ' ')}
                     </td>
                     <td className="py-3 px-3 font-semibold">{item.quantityKg} KG</td>
                     <td className="py-3 px-3">₹{item.ratePerKg}</td>
                     <td className="py-3 px-3 text-right font-extrabold text-slate-900">
-                      ₹{item.totalAmount.toLocaleString('en-IN')}
+                      ₹{(item.totalAmount ?? 0).toLocaleString('en-IN')}
                     </td>
                   </tr>
                 ))}
@@ -260,20 +260,20 @@ export const OrderDetailPage: React.FC = () => {
               <div className="flex justify-between text-slate-600">
                 <span>Subtotal:</span>
                 <span className="font-semibold text-slate-900">
-                  ₹{order.subtotal.toLocaleString('en-IN')}
+                  ₹{(order.subtotal ?? 0).toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Discount:</span>
-                <span>₹{order.discount}</span>
+                <span>₹{order.discount || 0}</span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Taxes & Charges:</span>
-                <span>₹{order.taxesAndFees}</span>
+                <span>₹{order.taxesAndFees || 0}</span>
               </div>
               <div className="flex justify-between text-base font-extrabold text-emerald-800 pt-2 border-t border-slate-200">
                 <span>Total Amount:</span>
-                <span>₹{order.totalAmount.toLocaleString('en-IN')}</span>
+                <span>₹{(order.totalAmount ?? 0).toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>

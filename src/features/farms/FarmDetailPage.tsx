@@ -251,7 +251,7 @@ export const FarmDetailPage: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <span className="font-bold text-stone-900 text-sm">{o.totalQuantityKg} KG</span>
-                      <p className="text-xs text-emerald-700 font-bold">₹{o.totalAmount.toLocaleString('en-IN')}</p>
+                      <p className="text-xs text-emerald-700 font-bold">₹{(o.totalAmount ?? 0).toLocaleString('en-IN')}</p>
                     </div>
                   </div>
                 ))

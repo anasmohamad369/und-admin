@@ -65,12 +65,12 @@ export const ShopDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <p className="text-xs font-semibold uppercase text-slate-500">Total Orders</p>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">{shop.totalOrders}</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">{shop.totalOrders ?? 0}</p>
         </div>
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <p className="text-xs font-semibold uppercase text-emerald-700">Total Purchases</p>
           <p className="text-2xl font-extrabold text-emerald-900 mt-1">
-            ₹{shop.totalPurchaseAmount.toLocaleString('en-IN')}
+            ₹{(shop.totalPurchaseAmount ?? 0).toLocaleString('en-IN')}
           </p>
         </div>
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -128,11 +128,11 @@ export const ShopDetailPage: React.FC = () => {
                 <div key={o.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-slate-900 text-sm">{o.orderNumber}</span>
-                    <p className="text-xs text-slate-500">Farm: {o.farmName} • {new Date(o.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-slate-500">Farm: {o.farmName} • {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'}</p>
                   </div>
                   <div className="text-right">
                     <span className="font-bold text-slate-900 text-sm">{o.totalQuantityKg} KG</span>
-                    <p className="text-xs text-emerald-700 font-bold">₹{o.totalAmount.toLocaleString('en-IN')}</p>
+                    <p className="text-xs text-emerald-700 font-bold">₹{(o.totalAmount ?? 0).toLocaleString('en-IN')}</p>
                   </div>
                 </div>
               ))}

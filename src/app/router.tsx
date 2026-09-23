@@ -26,6 +26,7 @@ import { OrderDetailPage } from '../features/orders/OrderDetailPage';
 import { CreateOrderPage } from '../features/orders/CreateOrderPage';
 
 import { InventoryPage } from '../features/inventory/InventoryPage';
+import { InventoryHistoryPage } from '../features/inventory/InventoryHistoryPage';
 
 import { DriversListPage } from '../features/drivers/DriversListPage';
 import { DriverDetailPage } from '../features/drivers/DriverDetailPage';
@@ -123,6 +124,10 @@ export const router = createBrowserRouter([
       {
         path: 'inventory',
         element: <InventoryPage />,
+      },
+      {
+        path: 'inventory/history',
+        element: <InventoryHistoryPage />,
       },
       {
         path: 'inventory/:id',

@@ -1,5 +1,5 @@
 import { apiClient } from './axios';
-import { ChickenType, CreateChickenTypePayload } from '../types/chickenType';
+import { ChickenType, CreateChickenTypePayload, UpdateChickenTypePayload } from '../types/chickenType';
 
 /** Default fallback chicken types if backend hasn't initialized any yet */
 export const DEFAULT_CHICKEN_TYPES: ChickenType[] = [
@@ -10,7 +10,7 @@ export const DEFAULT_CHICKEN_TYPES: ChickenType[] = [
 ];
 
 export const chickenTypesApi = {
-  /** READ Chicken Types: GET /api/v1/chicken-types */
+  /** READ All Chicken Types: GET /api/v1/chicken-types */
   getChickenTypes: async (): Promise<ChickenType[]> => {
     try {
       const response = await apiClient.get('/chicken-types');
@@ -32,5 +32,17 @@ export const chickenTypesApi = {
     });
     const raw = response.data as any;
     return raw?.success && raw?.data ? raw.data : raw;
+  },
+
+  /** UPDATE Chicken Type: PUT /api/v1/chicken-types/{id} */
+  updateChickenType: async (id: number | string, payload: UpdateChickenTypePayload): Promise<ChickenType> => {
+    const response = await apiClient.put(`/chicken-types/${id}`, payload);
+    const raw = response.data as any;
+    return raw?.success && raw?.data ? raw.data : raw;
+  },
+
+  /** DELETE Chicken Type: DELETE /api/v1/chicken-types/{id} */
+  deleteChickenType: async (id: number | string): Promise<void> => {
+    await apiClient.delete(`/chicken-types/${id}`);
   },
 };

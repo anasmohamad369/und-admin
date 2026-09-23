@@ -19,7 +19,8 @@ export const UpdateRatePage: React.FC = () => {
 
   const [farmId, setFarmId] = useState<string>('');
   const [chickenTypeId, setChickenTypeId] = useState<string>('');
-  const [ratePerKg, setRatePerKg] = useState<number>(105.5);
+  const [ratePerKg, setRatePerKg] = useState<number>(125.0);
+  const [discountPerKg, setDiscountPerKg] = useState<number>(15.0);
   const [currency] = useState<string>('INR');
   const [reason, setReason] = useState<string>('Market surge & feed cost adjustment');
   const [showConfirm, setShowConfirm] = useState(false);
@@ -71,10 +72,16 @@ export const UpdateRatePage: React.FC = () => {
 
   const handlePublish = async () => {
     try {
+      const originalRate = Number(ratePerKg); // Base price per KG
+      const discountAmt = Number(discountPerKg); // Flat discount per KG
+      const finalRate = Math.max(0, originalRate - discountAmt);
+
       await publishRateMutation.mutateAsync({
         farmId: isNaN(Number(farmId)) ? farmId : Number(farmId),
         chickenTypeId: isNaN(Number(chickenTypeId)) ? chickenTypeId : Number(chickenTypeId),
-        ratePerKg: Number(ratePerKg),
+        originalRatePerKg: originalRate,
+        discountPerKg: discountAmt,
+        ratePerKg: finalRate,
         currency,
         reason,
       });

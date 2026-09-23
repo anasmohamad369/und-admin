@@ -10,12 +10,23 @@ export const RetailersListPage: React.FC = () => {
   const { data: retailers = [], isLoading } = useRetailers();
   const [search, setSearch] = useState('');
 
-  const filtered = retailers.filter(
-    (r) =>
-      r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.ownerName.toLowerCase().includes(search.toLowerCase()) ||
-      r.city.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = retailers.filter((r) => {
+    if (!r) return false;
+    const searchLower = (search || '').toLowerCase();
+    const nameStr = (r.name || '').toLowerCase();
+    const ownerStr = (r.ownerName || '').toLowerCase();
+    const cityStr = (r.city || '').toLowerCase();
+    const phoneStr = (r.primaryPhone || '').toLowerCase();
+    const emailStr = (r.email || '').toLowerCase();
+
+    return (
+      nameStr.includes(searchLower) ||
+      ownerStr.includes(searchLower) ||
+      cityStr.includes(searchLower) ||
+      phoneStr.includes(searchLower) ||
+      emailStr.includes(searchLower)
+    );
+  });
 
   const columns: Column<Retailer>[] = [
     {
@@ -34,34 +45,34 @@ export const RetailersListPage: React.FC = () => {
     },
     {
       header: 'Owner',
-      cell: (row) => <span className="font-semibold text-slate-800 text-xs">{row.ownerName}</span>,
+      cell: (row) => <span className="font-semibold text-slate-800 text-xs">{row.ownerName || 'N/A'}</span>,
     },
     {
       header: 'Primary Mobile',
-      cell: (row) => <span className="text-xs font-mono text-slate-700">{row.primaryPhone}</span>,
+      cell: (row) => <span className="text-xs font-mono text-slate-700">{row.primaryPhone || 'N/A'}</span>,
     },
     {
       header: 'Number of Shops',
       cell: (row) => (
         <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-900 bg-brand-50 border border-brand-200 px-2.5 py-1 rounded-full">
           <ShoppingBag className="w-3.5 h-3.5 text-brand-700" />
-          {row.shopsCount} Shops
+          {row.shopsCount ?? 0} Shops
         </span>
       ),
     },
     {
       header: 'City / Circle',
-      cell: (row) => <span className="text-xs font-medium text-slate-600">{row.city}</span>,
+      cell: (row) => <span className="text-xs font-medium text-slate-600">{row?.city || 'N/A'}</span>,
     },
     {
       header: 'Total Orders',
-      cell: (row) => <span className="font-bold text-slate-900 text-xs">{row.totalOrders}</span>,
+      cell: (row) => <span className="font-bold text-slate-900 text-xs">{row?.totalOrders ?? 0}</span>,
     },
     {
       header: 'Total Purchase',
       cell: (row) => (
         <span className="font-extrabold text-emerald-700 text-xs">
-          ₹{row.totalPurchaseAmount.toLocaleString('en-IN')}
+          ₹{(row?.totalPurchaseAmount ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },
@@ -112,7 +123,7 @@ export const RetailersListPage: React.FC = () => {
       <DataTable
         columns={columns}
         data={filtered}
-        keyExtractor={(row) => row.id}
+        keyExtractor={(row) => String(row.id)}
         searchValue={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search retailers by name, owner, or city..."

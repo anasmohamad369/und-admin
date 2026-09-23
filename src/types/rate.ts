@@ -7,25 +7,35 @@ export interface LiveRate {
   farmName?: string;
   chickenTypeId?: number | string;
   chickenType?: string;
+  originalRatePerKg?: number;
+  originalRate?: number;
+  marketRatePerKg?: number;
+  discountPerKg?: number;
   ratePerKg: number;
+  currentRate?: number;
   previousRatePerKg?: number;
   percentageChange?: number;
   currency?: string;
+  status?: 'ACTIVE' | 'EXPIRED' | 'MAINTENANCE';
+  reason?: string;
   effectiveFrom?: string;
+  effectiveTo?: string;
   updatedBy?: string;
   updatedById?: string;
-  reason?: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 
 /** Payload matching POST /api/v1/rates */
 export interface PublishRatePayload {
   farmId: number | string;
-  chickenTypeId?: number | string;
-  chickenType?: string;
-  ratePerKg: number;
+  chickenTypeId: number | string;
+  originalRatePerKg: number;
+  discountPerKg: number;
+  marketRatePerKg?: number;
+  ratePerKg?: number;
   currency?: string;
-  reason?: string;
+  reason: string;
   effectiveFrom?: string;
 }
 

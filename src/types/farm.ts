@@ -11,6 +11,8 @@ export interface Farm {
   state?: string;
   contactPerson?: string; // alias for ownerName
   location?: string;      // alias for address
+  originalRate?: number;
+  discountPerKg?: number;
   currentRate?: number;
   physicalStock?: number;
   reservedStock?: number;
@@ -32,6 +34,8 @@ export interface CreateFarmPayload {
   phone?: string;
   city?: string;
   state?: string;
+  originalRate?: number;
+  discountPerKg?: number;
   currentRate?: number;
   physicalStock?: number;
   deliveryRadiusKm?: number;
@@ -48,6 +52,8 @@ export interface UpdateFarmPayload {
   phone?: string;
   city?: string;
   state?: string;
+  originalRate?: number;
+  discountPerKg?: number;
   currentRate?: number;
   physicalStock?: number;
   deliveryRadiusKm?: number;

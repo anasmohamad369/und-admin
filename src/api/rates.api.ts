@@ -2,7 +2,7 @@ import { apiClient } from './axios';
 import { LiveRate, RateHistoryItem, PublishRatePayload } from '../types/rate';
 
 export const ratesApi = {
-  /** READ Current Live Rate: GET /api/v1/rates/current?farmId=1&chickenTypeId=1 (with fallback to GET /api/v1/rates/live) */
+  /** READ Current Live Rate: GET /api/v1/rates/current?farmId=10&chickenTypeId=3 */
   getCurrentRate: async (farmId?: number | string, chickenTypeId?: number | string): Promise<LiveRate | null> => {
     try {
       const response = await apiClient.get('/rates/current', {
@@ -15,31 +15,41 @@ export const ratesApi = {
     }
   },
 
-  /** READ All Live Rates: GET /api/v1/rates (or GET /api/v1/rates/live) */
+  /** READ All Active Rates: GET /api/v1/rates?farmId=ALL (or specific farmId) */
   getLiveRates: async (farmId?: number | string): Promise<LiveRate[]> => {
     let response;
+    const targetFarmId = farmId || 'ALL';
     try {
-      response = await apiClient.get('/rates', { params: farmId ? { farmId } : undefined });
+      response = await apiClient.get('/rates', { params: { farmId: targetFarmId } });
     } catch (e) {
-      response = await apiClient.get('/rates/live', { params: farmId ? { farmId } : undefined });
+      response = await apiClient.get('/rates/live', { params: { farmId: targetFarmId } });
     }
     const raw = response.data as any;
 
     if (Array.isArray(raw)) return raw;
     if (raw?.success && Array.isArray(raw?.data)) return raw.data;
+    if (raw?.success && raw?.data?.content && Array.isArray(raw.data.content)) return raw.data.content;
     if (raw?.content && Array.isArray(raw.content)) return raw.content;
     return [];
   },
 
-  /** READ Rate History: GET /api/v1/rates/history?farmId=1&chickenTypeId=1 */
-  getRateHistory: async (farmId?: number | string, chickenTypeId?: number | string): Promise<RateHistoryItem[]> => {
-    const response = await apiClient.get('/rates/history', {
-      params: { farmId, chickenTypeId },
-    });
+  /** READ Rate History Timeline: GET /api/v1/rates/history?farmId=10&chickenTypeId=3&page=0&size=20 */
+  getRateHistory: async (
+    farmId?: number | string,
+    chickenTypeId?: number | string,
+    page: number = 0,
+    size: number = 20
+  ): Promise<RateHistoryItem[]> => {
+    const params: Record<string, any> = { page, size };
+    if (farmId && farmId !== 'ALL') params.farmId = farmId;
+    if (chickenTypeId && chickenTypeId !== 'ALL') params.chickenTypeId = chickenTypeId;
+
+    const response = await apiClient.get('/rates/history', { params });
     const raw = response.data as any;
 
     if (Array.isArray(raw)) return raw;
     if (raw?.success && Array.isArray(raw?.data)) return raw.data;
+    if (raw?.success && raw?.data?.content && Array.isArray(raw.data.content)) return raw.data.content;
     if (raw?.content && Array.isArray(raw.content)) return raw.content;
     return [];
   },
@@ -48,7 +58,6 @@ export const ratesApi = {
   publishRate: async (payload: PublishRatePayload): Promise<LiveRate> => {
     const response = await apiClient.post('/rates', {
       currency: 'INR',
-      reason: 'Market update',
       ...payload,
     });
     const raw = response.data as any;
